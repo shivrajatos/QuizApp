@@ -1,0 +1,65 @@
+<html lang="en">    
+
+<title> Convert Excel File To JSON </title>
+
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
+	
+    <script>
+	var json_object='{"question":';
+        $(document).ready(function(){
+              $("#fileUploader").change(function(evt){
+					
+                    var selectedFile = evt.target.files[0];
+                    var reader = new FileReader();
+                    reader.onload = function(event) {
+                      var data = event.target.result;
+                      var workbook = XLSX.read(data, {
+                          type: 'binary'
+                      });
+                      workbook.SheetNames.forEach(function(sheetName) {
+                        
+                          var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
+                          window.json_object += JSON.stringify(XL_row_object);
+						  window.json_object +='}'
+						  console.log(window.json_object);
+						  document.getElementById("jsonObject").innerHTML = json_object;
+						  var xhr = new XMLHttpRequest();
+							//xhr.withCredentials = true;
+
+							xhr.addEventListener("readystatechange", function () {
+							  if (this.readyState === 4) {
+								console.log(this.responseText);
+							  }
+							});
+
+							
+							xhr.open("POST", "http://localhost:8080/send");
+							xhr.setRequestHeader("content-type", "application/json");
+							//xhr.setRequestHeader("cache-control", "no-cache");
+							//xhr.setRequestHeader("postman-token", "faa37109-19d8-cf41-0588-48c5850be917");
+
+							xhr.send(json_object);
+						  
+                        })
+                    };
+
+                    reader.onerror = function(event) {
+                      console.error("File could not be read! Code " + event.target.error.code);
+                    };
+
+                    reader.readAsBinaryString(selectedFile);
+					console.log(window.json_object);
+              });
+        });
+    </script>
+
+</head>
+
+<body>
+
+    <input type="file" id="fileUploader" name="fileUploader" accept=".xls, .xlsx"/>
+    </br></br>
+    <label id="jsonObject"> JSON : </label>
+</body>
